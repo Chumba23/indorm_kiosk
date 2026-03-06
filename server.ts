@@ -20,7 +20,11 @@ const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
 // --- Multer Setup ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+<<<<<<< HEAD
     cb(null, path.join(__dirname, "public", "docs"));
+=======
+    cb(null, path.join(__dirname, "data", "docs"));
+>>>>>>> main1
   },
   filename: (req, file, cb) => {
     // Keep original filename but make sure it's safe
@@ -30,6 +34,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+<<<<<<< HEAD
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -39,11 +44,31 @@ async function startServer() {
     await fs.mkdir(path.join(__dirname, "public", "docs"), { recursive: true });
   } catch (err) {
     console.error("Failed to create docs directory:", err);
+=======
+const app = express();
+
+async function setupApp() {
+  const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
+
+  // Ensure data and docs directory exists (only for local dev, Vercel is read-only)
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      await fs.mkdir(path.join(__dirname, "data", "docs"), { recursive: true });
+    } catch (err) {
+      console.error("Failed to create docs directory:", err);
+    }
+>>>>>>> main1
   }
 
   app.use(express.json());
   app.use(cookieParser());
 
+<<<<<<< HEAD
+=======
+  // Serve docs from data directory
+  app.use("/docs", express.static(path.join(__dirname, "data", "docs")));
+
+>>>>>>> main1
   // --- Auth Middleware ---
   const authenticate = (req: any, res: any, next: any) => {
     const token = req.cookies.admin_token;
@@ -66,8 +91,13 @@ async function startServer() {
       const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: "24h" });
       res.cookie("admin_token", token, {
         httpOnly: true,
+<<<<<<< HEAD
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
+=======
+        secure: true,
+        sameSite: "none",
+>>>>>>> main1
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
       });
       return res.json({ success: true });
@@ -96,7 +126,11 @@ async function startServer() {
   // Get Catalog
   app.get("/api/catalog", async (req, res) => {
     try {
+<<<<<<< HEAD
       const catalogPath = path.join(__dirname, "public", "catalog.json");
+=======
+      const catalogPath = path.join(__dirname, "data", "catalog.json");
+>>>>>>> main1
       const data = await fs.readFile(catalogPath, "utf-8");
       res.json(JSON.parse(data));
     } catch (err) {
@@ -107,7 +141,11 @@ async function startServer() {
   // Update Catalog
   app.post("/api/catalog", authenticate, async (req, res) => {
     try {
+<<<<<<< HEAD
       const catalogPath = path.join(__dirname, "public", "catalog.json");
+=======
+      const catalogPath = path.join(__dirname, "data", "catalog.json");
+>>>>>>> main1
       await fs.writeFile(catalogPath, JSON.stringify(req.body, null, 2), "utf-8");
       res.json({ success: true });
     } catch (err) {
@@ -133,6 +171,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
+<<<<<<< HEAD
     app.use(express.static(path.join(__dirname, "dist")));
     app.get("*", (req, res) => {
       res.sendFile(path.join(__dirname, "dist", "index.html"));
@@ -145,3 +184,21 @@ async function startServer() {
 }
 
 startServer();
+=======
+    // In production (Vercel), static files are served by Vercel's routing
+    // But we keep this for local production testing
+    app.use(express.static(path.join(__dirname, "dist")));
+  }
+}
+
+setupApp().then(() => {
+  if (process.env.NODE_ENV !== "production") {
+    const PORT = 3000;
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
+});
+
+export default app;
+>>>>>>> main1
